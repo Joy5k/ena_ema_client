@@ -1,95 +1,85 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
 
-export default function Home() {
+import React, { useState } from 'react';
+import styles from './Home.module.css';  // Import the CSS module
+
+function Home() {
+  interface Expense {
+    date: string;
+    category: string;
+    purpose: string;
+    amount: string;
+  }
+
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [expense, setExpense] = useState({ category: '', purpose: '', amount: '' });
+  const categories = ['Groceries', 'Transportation', 'Healthcare', 'Utility', 'Charity', 'Miscellaneous'];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+    const { name, value } = e.target;
+    setExpense({ ...expense, [name]: value });
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    const newExpense: Expense = { ...expense, date: new Date().toLocaleString() };
+    setExpenses([...expenses, newExpense]);
+    setExpense({ category: '', purpose: '', amount: '' });
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h1>Expense Tracker</h1>
+          <p>Track your expenses and stay on budget.</p>
+        </header>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <h2 className={styles.title}>Expense Input</h2>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <label>
+            Category:
+            <select  name="category" value={expense.category} onChange={handleChange} 
+            style={{
+              padding:"3px"
+            }}
+             required>
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+          <br />
+          <label>
+            Purpose:
+            <input type="text" name="purpose" value={expense.purpose} onChange={handleChange} required />
+          </label>
+          <br />
+          <label>
+            Amount:
+            <input type="number" name="amount" value={expense.amount} onChange={handleChange} required />
+          </label>
+          <br />
+          <button type="submit">Add Expense</button>
+        </form>
+      </div>
+
+     <div className={`${styles.mt20 } ${styles.container} `} 
+     style={{  margin:" 20px auto"}}>
+     <h2 className={styles.title}>Expenses Summary</h2>
+      <ul>
+        {expenses.map((exp, index) => (
+          <li key={index}>
+            {exp.date} - {exp.category}: {exp.purpose} - ${exp.amount}
+          </li>
+        ))}
+      </ul>
+     </div>
     </div>
   );
 }
+
+export default Home;

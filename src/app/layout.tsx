@@ -1,4 +1,3 @@
-import './globals.css';
 import { Toaster } from 'sonner';
 import Providers from '../lib/Providers/Providers';
 
@@ -17,7 +16,7 @@ export default function RootLayout({
                      <Toaster position='top-center' />
                      {children}
                   </>
-\            </body>
+            </body>
          </html>
       </Providers>
    );
