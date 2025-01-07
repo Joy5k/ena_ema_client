@@ -2,8 +2,15 @@
 
 import React, { useState } from 'react';
 import styles from './Home.module.css';  // Import the CSS module
+import { getFromLocalStorage } from '../utils/local-storage';
+import { useRouter } from 'next/navigation';
 
 function Home() {
+  const router=useRouter()
+  const accessToken=getFromLocalStorage("accessToken")
+    if(!accessToken){
+      router.push("/login")
+    }
   interface Expense {
     date: string;
     category: string;
@@ -22,10 +29,12 @@ function Home() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    const newExpense: Expense = { ...expense, date: new Date().toLocaleString() };
+    const newExpense: Expense = { ...expense, date: new Date().toISOString() }; // Use ISO format
     setExpenses([...expenses, newExpense]);
     setExpense({ category: '', purpose: '', amount: '' });
   };
+
+  
 
   return (
     <div>

@@ -3,18 +3,27 @@ import { baseApi } from "./baseApi"
 const authApi = baseApi.injectEndpoints({
     endpoints: (builder) =>( {
         login: builder.mutation({
-            query: (userInfo) => ({
-                url: "/auth/login",
-                    method: "POST",
-                    body:userInfo
-            })
+            query: (userInfo) => {
+                console.log(userInfo,"in redux api")
+                return {
+                
+                    url: "/auth/login",
+                        method: "POST",
+                        body:userInfo
+                }
+            }
         }),
+
+
         register: builder.mutation({
-            query: (userInfo) => ({
-                url: "/auth/register",
-                    method: "POST",
-                    body:userInfo
-            })
+            query: (userInfo) => {
+                console.log(userInfo)
+                return {
+                    url: "/auth/register",
+                        method: "POST",
+                        body:userInfo
+                }
+            }
         }),
       
         
