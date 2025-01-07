@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import styles from './Login.module.css'; // Import the CSS module
 
 function LoginPage() {
-    const router=useRouter()
-    const [login, { isLoading, error }] = useLoginMutation(); 
+    const router = useRouter();
+    const [login, { isLoading, error }] = useLoginMutation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -28,53 +29,40 @@ function LoginPage() {
     };
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: '500px',
-                height: '100vh',
-                margin: '0 auto',
-            }}
-        >
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', width: '300px' }}>
-                <label style={{ marginBottom: '10px' }}>
+        <div className={styles.container}>
+            <form onSubmit={handleSubmit} className={styles.form}>
+                <p className={styles.demoCR}>Email: user@gmail.com</p>
+                <p className={styles.demoCR}>password: 123456</p>
+                <hr />
+                <label className={styles.label}>
                     Email:
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        className={styles.input}
                     />
                 </label>
-                <label style={{ marginBottom: '20px' }}>
+                <label className={styles.passwordLabel}>
                     Password:
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        className={styles.input}
                     />
                 </label>
                 <button
                     type="submit"
-                    style={{
-                        padding: '10px',
-                        width: '100%',
-                        backgroundColor: '#007BFF',
-                        color: 'white',
-                        border: 'none',
-                        cursor: 'pointer',
-                    }}
+                    className={styles.button}
                     disabled={isLoading}
                 >
                     {isLoading ? 'Logging in...' : 'Login'}
                 </button>
 
-                {error && <p style={{ color: 'red' }}>{error?.data?.message  || 'Login failed'}</p>} {/* Show error message if available */}
-                
-                <Link href="/register" style={{ textAlign: 'center', marginTop: '10px' }}>
+                {error && <p className={styles.errorMessage}>{error?.data?.message || 'Login failed'}</p>}
+
+                <Link href="/register" className={styles.link}>
                     Don&apos;t have an account? Register
                 </Link>
             </form>

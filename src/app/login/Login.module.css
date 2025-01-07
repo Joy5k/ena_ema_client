@@ -1,0 +1,51 @@
+/* LoginPage.module.css */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 500px;
+    height: 100vh;
+    margin: 0 auto;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+}
+
+.label {
+    margin-bottom: 10px;
+}
+
+.input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+
+.passwordLabel {
+    margin-bottom: 20px;
+}
+
+.button {
+    padding: 10px;
+    width: 100%;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.errorMessage {
+    color: red;
+}
+
+.link {
+    text-align: center;
+    margin-top: 10px;
+}
+.demoCR{
+    margin: 0;
+    font-family: sans-serif;
+}
