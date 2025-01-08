@@ -26,6 +26,9 @@ export const flatApi = baseApi.injectEndpoints({
         return {
           url: `/expense/tasks?filter=${query ? query : ""}`,
           method: "GET",
+          headers: {
+            Authorization: accessToken || "",
+        },
         };
       },
       providesTags: [tagTypes.expense],
@@ -37,6 +40,9 @@ export const flatApi = baseApi.injectEndpoints({
         return {
           url: `/expense/tasks/${data.expenseId}`,
           method: "PATCH",
+          headers: {
+            Authorization: accessToken || "",
+        },
           data: data.expenseData,
           contentType: "application/json",
         };
@@ -48,6 +54,9 @@ export const flatApi = baseApi.injectEndpoints({
         return {
           url: `/expense/tasks/${expenseId}`,
           method: "DELETE",
+          headers: {
+            Authorization: accessToken || "",
+        },
         };
       },
       invalidatesTags: [tagTypes.expense],
