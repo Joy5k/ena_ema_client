@@ -1,15 +1,16 @@
-'use client'; 
+'use client';
 
-import {  useRegisterMutation } from '@/src/redux/api/autApi';
+import { useRegisterMutation } from '@/src/redux/api/autApi';
 import { setToLocalStorage } from '@/src/utils/local-storage';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import styles from './Register.module.css'; // Import the CSS module
 
 function Register() {
-    const router=useRouter()
-    const [registerMutation]=useRegisterMutation()
+    const router = useRouter();
+    const [registerMutation] = useRegisterMutation();
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
@@ -19,11 +20,11 @@ function Register() {
         const payload = { name, email, password };
         try {
             const res = await registerMutation(payload).unwrap();
-            console.log(res.data.accessToken,"response");
-            if (res?.success&& res?.data?.accessToken) {
-                setToLocalStorage("accessToken",res?.data?.accessToken)
+            console.log(res.data.accessToken, "response");
+            if (res?.success && res?.data?.accessToken) {
+                setToLocalStorage("accessToken", res?.data?.accessToken);
                 toast.success('Successfully registered');
-                router.push("/")
+                router.push("/");
             } else {
                 toast.error(res?.message || 'Registration failed');
             }
@@ -36,53 +37,47 @@ function Register() {
             }
         }
     };
-    
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center',width:"500px", height: '100vh',margin:"0 auto" }}>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', width: '300px' }}>
-                <label style={{ marginBottom: '10px' }}>
+        <div className={styles.container}>
+            <form onSubmit={handleSubmit} className={styles.form}>
+                <label className={styles.label}>
                     Your Name:
                     <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        className={styles.input}
                     />
                 </label>
-                <label style={{ marginBottom: '10px' }}>
+                <label className={styles.label}>
                     Email:
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        className={styles.input}
                     />
                 </label>
-                <label style={{ marginBottom: '20px' }}>
+                <label className={styles.passwordLabel}>
                     Password:
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        className={styles.input}
                     />
                 </label>
-                <button type="submit" style={{
-                     padding: '10px', 
-                     width: '100%',
-                     backgroundColor: '#007BFF', 
-                     color: 'white',
-                      border: 'none',
-                     cursor: 'pointer' 
-                     }}>
+                <button type="submit" className={styles.button}>
                     Register
                 </button>
-                <Link href="/register">Login</Link>
-
+                <Link href="/login" className={styles.link}>
+                    Login
+                </Link>
             </form>
         </div>
     );
 }
 
 export default Register;
+ 

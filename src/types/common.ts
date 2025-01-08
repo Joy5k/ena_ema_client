@@ -24,4 +24,9 @@ export type IGenericErrorMessage = {
   message: string;
 };
 
-export const Gender = ["MALE", "FEMALE"];
+ export interface IExpense {
+    date: string;
+    category: string;
+    purpose: string;
+    amount: string;
+  }
