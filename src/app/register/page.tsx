@@ -20,11 +20,16 @@ function Register() {
         const payload = { name, email, password };
         try {
             const res = await registerMutation(payload).unwrap();
-            console.log(res.data.accessToken, "response");
+
             if (res?.success && res?.data?.accessToken) {
+                // save the accessToken on localstorage
                 setToLocalStorage("accessToken", res?.data?.accessToken);
                 toast.success('Successfully registered');
-                router.push("/");
+                
+            //delay one second for ensure accessToken save localstorage successfully
+                setTimeout(() => {
+                    router.push('/');
+                }, 1000);
             } else {
                 toast.error(res?.message || 'Registration failed');
             }

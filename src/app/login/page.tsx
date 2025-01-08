@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import styles from './Login.module.css'; // Import the CSS module
+import { setToLocalStorage } from '@/src/utils/local-storage';
 
 function LoginPage() {
     const router = useRouter();
@@ -18,10 +19,14 @@ function LoginPage() {
 
         try {
             const response = await login({ email, password }).unwrap();
-            console.log('Login successful:', response);
 
-            toast.success('Login successful!');
-            router.push('/');
+            if(response.success){
+                setToLocalStorage("accessToken",response?.data?.accessToken)
+                toast.success('Login successful!');
+                setTimeout(() => {
+                    router.push('/');
+                }, 1000);
+            }
         } catch (error) {
             console.error('Login failed:', error);
             toast.error('Login failed! Please check your credentials.');

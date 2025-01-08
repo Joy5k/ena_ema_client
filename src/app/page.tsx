@@ -4,16 +4,19 @@ import React, { useEffect, useState } from 'react';
 import styles from './Home.module.css';  // Import the CSS module
 import { getFromLocalStorage } from '../utils/local-storage';
 import { useRouter } from 'next/navigation';
-import { IExpense } from '../types';
+import { useCreateExpenseMutation } from '../redux/api/expenseApi';
+import { toast } from 'sonner';
+import ExpenseTable from './expensesTable/ExpenseTable';
 
 function Home() {
   const router=useRouter()
+  const [createExpense]=useCreateExpenseMutation()
+  const accessToken = getFromLocalStorage("accessToken");
   useEffect(() => {
-    const accessToken = getFromLocalStorage("accessToken");
     if (!accessToken) {
       router.push("/login");
     }
-  }, [router]);
+  }, [router,accessToken]);
 
   const isFirstVisit = localStorage.getItem('firstVisit') === null;
   useEffect(() => {
@@ -43,7 +46,6 @@ function Home() {
 
 
 
-  const [expenses, setExpenses] = useState<IExpense[]>([]);
   const [expense, setExpense] = useState({ category: '', purpose: '', amount: '' });
   const categories = ['Groceries', 'Transportation', 'Healthcare', 'Utility', 'Charity', 'Miscellaneous'];
 
@@ -52,19 +54,35 @@ function Home() {
     setExpense({ ...expense, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit =async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    const newExpense: IExpense = { ...expense, date: new Date().toISOString() }; // Use ISO format
-    setExpenses([...expenses, newExpense]);
     setExpense({ category: '', purpose: '', amount: '' });
+  
+try {
+  const data={...expense,amount:Number(expense.amount)}
+    const res=await  createExpense(data).unwrap()
+    console.log(res)
+    if(res?.success){
+      toast.success("created expenses successfully")
+    }
+} catch (error) {
+    console.log(error)
+    toast.error("something went wrong !")
+}
+
   };
 
   
 
   return (
     <div>
-   <div className={styles.container}>
+   <div className={`${styles.container} ${styles.mb10}`}>
       <div id="overlay" className={styles.overlay} onClick={closePrompt}></div>
+      <h2 style={{
+        fontFamily:"sans-serif",
+        display:"flex",
+        justifyContent:"center"
+      }}>Set Your Monthly Expense Limit</h2>
       <div id="promptContainer" className={styles.promptContainer}>
 
         <div className={styles.prompt}>
@@ -155,15 +173,9 @@ function Home() {
         </form>
       </div>
 
-      <div className={`${styles.mt20} ${styles.container}`} style={{ margin: "20px auto" }}>
+      <div className={`${styles.mt20} ${styles.tableContainer}`} style={{ margin: "20px auto" }}>
         <h2 className={styles.title}>Expenses Summary</h2>
-        <ul>
-          {expenses.map((exp, index) => (
-            <li key={index}>
-              {exp.date} - {exp.category}: {exp.purpose} - ${exp.amount}
-            </li>
-          ))}
-        </ul>
+        <ExpenseTable></ExpenseTable>
       </div>
     </div>
   );

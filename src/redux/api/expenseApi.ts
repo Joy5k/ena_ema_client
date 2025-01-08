@@ -1,49 +1,56 @@
+import { getFromLocalStorage } from "@/src/utils/local-storage";
+import { tagTypes } from "../tag-types";
 import { baseApi } from "./baseApi";
 
+const accessToken=getFromLocalStorage("accessToken")
 export const flatApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     createExpense: build.mutation({
       query: (data) => {
+        console.log(data)
         return {
-          url: "/expense/create",
+          url: "/expense/tasks",
           method: "POST",
-          data,
+         headers: {
+          Authorization: accessToken || "",
+      },
           contentType: "application/json",
+          body:data,
         };
       },
-      invalidatesTags: ['expense'],
+      invalidatesTags: [tagTypes.expense],
     }),
 
     getAllExpense: build.query({
-      query: () => {
+      query: (query) => {
         return {
-          url: `/expense/get-all-expense?`,
+          url: `/expense/tasks?filter=${query ? query : ""}`,
           method: "GET",
         };
       },
-      providesTags: ["expense"],
+      providesTags: [tagTypes.expense],
     }),
 
   
     updateExpense: build.mutation({
        query: (data) => {
         return {
-          url: `/expense/update/${data.expenseId}`,
+          url: `/expense/tasks/${data.expenseId}`,
           method: "PATCH",
           data: data.expenseData,
           contentType: "application/json",
         };
       },
-      invalidatesTags: ['expense'],
+      invalidatesTags: [tagTypes.expense],
     }),
     deleteFlatByAdmin: build.mutation({
        query: (expenseId) => {
         return {
-          url: `/expense/delete/${expenseId}`,
+          url: `/expense/tasks/${expenseId}`,
           method: "DELETE",
         };
       },
-      invalidatesTags: ["expense"],
+      invalidatesTags: [tagTypes.expense],
     }),
   }),
 });

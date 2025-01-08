@@ -1,0 +1,45 @@
+.table {
+    font-family: sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+    text-align: left;
+  }
+  
+  .headerRow {
+    background-color: #f4f4f4;
+    border-bottom: 2px solid #ddd;
+  }
+  
+  .headerCell {
+    padding: 10px;
+    border: 1px solid #ddd;
+    font-weight: bold;
+  }
+  
+  .dataRow {
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .dataCell {
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+  
+  .bold {
+    font-weight: bold;
+  }
+  
+  .update {
+    color: #007BFF;
+    cursor: pointer;
+    text-align: center;
+  }
+  
+  .delete {
+    color: #FF0000;
+    cursor: pointer;
+    text-align: center;
+  }
+  
