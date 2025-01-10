@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import styles from "./ExpenseTable.module.css";
-import { useGetAllExpenseQuery } from "@/src/redux/api/expenseApi";
+import { useGetAllExpenseQuery, useUpdateExpenseMutation } from "@/src/redux/api/expenseApi";
+import { toast } from "sonner";
 
 interface Category {
     category: string;
@@ -14,10 +15,12 @@ interface ExpenseData {
     _id: string | null;
     categories: Category[];
     dailyTotal: number;
+    date:string
 }
 
 export default function ExpenseTable() {
     const { data } = useGetAllExpenseQuery({});
+    const [updateExpense,{isLoading}]=useUpdateExpenseMutation()
     const expenses = data?.data || [];
 
     const categories = [
@@ -29,14 +32,18 @@ export default function ExpenseTable() {
         "Miscellaneous",
         "other",
     ];
-
     const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
     const [currentExpense, setCurrentExpense] = useState<ExpenseData | null>(null);
     const [updatedCategories, setUpdatedCategories] = useState<Category[] | null>(null);
 
-    const openUpdatePrompt = (expense: ExpenseData) => {
-        setCurrentExpense(expense);
-        setUpdatedCategories(expense.categories);
+    const openUpdatePrompt = (expense: { date: string; data: Record<string, number>; total: number }) => {
+        const categories = Object.entries(expense.data).map(([category, amount]) => ({
+            category,
+            amount,
+            date: expense.date,
+        }));
+        setCurrentExpense({ _id: null, categories, dailyTotal: expense.total, date: expense.date });
+        setUpdatedCategories(categories);
         setShowUpdatePrompt(true);
     };
 
@@ -49,31 +56,131 @@ export default function ExpenseTable() {
         if (updatedCategories) {
             const updatedCategory = updatedCategories.map((cat) =>
                 cat.category === category ? { ...cat, amount: newAmount } : cat
+                
             );
             setUpdatedCategories(updatedCategory);
         }
     };
 
     // The function that will trigger when the user confirms the update.
-    const handleConfirmUpdate = () => {
+    const handleConfirmUpdate = async (e: React.FormEvent) => {
+        e.preventDefault()
         if (updatedCategories && currentExpense) {
             const updatedExpense = {
-                ...currentExpense,
                 categories: updatedCategories,
-                dailyTotal: updatedCategories.reduce((total, cat) => total + cat.amount, 0),
             };
-
-            console.log("Confirming expense update:", updatedExpense);
-            // You can add your API call or logic to save the updated expense here.
+            const date= updatedExpense.categories[0]?.date
+            const payload={
+                expenseId:date,
+                categories:{categories:updatedCategories}
+            }
+        try {
+            const res=await updateExpense(payload).unwrap()
+            if(res.success){
+              toast.success("Expenses updated successfully")
+            }
+        } catch (error) {
+            // define error and appearing the error if exists 
+            const errorMessage = (error as { data?: { message?: string } }).data?.message;
+            toast.error(errorMessage ? errorMessage : "something went wrong");
+        }
         }
 
         closeUpdatePrompt(); // Close the prompt after confirmation
     };
 
+    // delete expenses recorded according to date and user email
+    const handleDeleteExpenses=async(date:string)=>{
+        toast.success(date)
+    }
+
+
     return (
         <div>
-            {/* Update Prompt */}
-            {showUpdatePrompt && currentExpense && updatedCategories && (
+          
+
+            {/*Expenses Table */}
+            <table className={styles.table}>
+                <thead>
+                    <tr className={styles.headerRow}>
+                        <th className={styles.headerCell}>Date</th>
+                        {categories.map((category, index) => (
+                            <th key={index} className={styles.headerCell}>
+                                {category}
+                            </th>
+                        ))}
+                        <th className={styles.headerCell}>Total</th>
+                        <th className={styles.headerCell}>Update</th>
+                        <th className={styles.headerCell}>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+    {expenses.length > 0 ? (
+        Object.entries(
+            expenses
+                .flatMap((expense:ExpenseData) => expense.categories) // Combine all categories into a single array
+                .reduce((acc: Record<string, any>, category) => {
+                    const { date, category: catName, amount } = category;
+                    if (!acc[date]) {
+                        acc[date] = { date, data: {}, total: 0 };
+                    }
+                    acc[date].data[catName] = (acc[date].data[catName] || 0) + amount; // Aggregate amounts
+                    acc[date].total += amount; // Calculate the total for the day
+                    return acc;
+                }, {})
+        )
+            .sort(
+                ([dateA], [dateB]) =>
+                    new Date(dateA).getTime() - new Date(dateB).getTime()
+            ) // Sort by date
+            .map(([date, { data, total }]: [string, any], index: number) => (
+                <tr key={index} className={styles.dataRow}>
+                    {/** Display the date */}
+                    <td className={styles.dataCell}>
+                        {new Date(date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                        })}
+                    </td>
+                    {/** Display category data */}
+                    {categories.map((catName, catIndex) => (
+                        <td key={catIndex} className={styles.dataCell}>
+                            {data[catName] || ""}
+                        </td>
+                    ))}
+                    <td className={`${styles.dataCell} ${styles.bold}`}>
+                        {total || 0}
+                    </td>
+                    <td
+                        className={`${styles.dataCell} ${styles.update}`}
+                        onClick={() => openUpdatePrompt({ date, data, total })}
+                    >
+                        Update
+                    </td>
+                    <td className={`${styles.dataCell} ${styles.delete}`}
+                    onClick={()=>handleDeleteExpenses(date)}
+                    >
+                        Delete
+                    </td>
+                </tr>
+            ))
+    ) : (
+        <tr className={styles.dataRow}>
+            <td className={styles.dataCell} colSpan={categories.length + 3}>
+                No Data Available
+            </td>
+        </tr>
+    )}
+</tbody>
+
+
+
+            </table>
+
+
+              {/* Update Prompt */}
+              {showUpdatePrompt && currentExpense && updatedCategories && (
                 <div className={styles.promptOverlay}>
                     <div className={styles.prompt}>
                         <h2>Update Expense</h2>
@@ -91,68 +198,12 @@ export default function ExpenseTable() {
                             </div>
                         ))}
                         <div className={styles.actionButtons}>
-                            <button onClick={handleConfirmUpdate}>Yes</button>
-                            <button onClick={closeUpdatePrompt}>Cancel</button>
+                            <button onClick={handleConfirmUpdate}>{isLoading ?"Loading..." :"save"}</button>
+                            <button disabled={isLoading} onClick={closeUpdatePrompt}>Cancel</button>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* Main Table */}
-            <table className={styles.table}>
-                <thead>
-                    <tr className={styles.headerRow}>
-                        <th className={styles.headerCell}>Date</th>
-                        {categories.map((category, index) => (
-                            <th key={index} className={styles.headerCell}>
-                                {category}
-                            </th>
-                        ))}
-                        <th className={styles.headerCell}>Total</th>
-                        <th className={styles.headerCell}>Update</th>
-                        <th className={styles.headerCell}>Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {expenses.length > 0 ? (
-                        expenses.map((expense: ExpenseData, index: number) => (
-                            <tr key={index} className={styles.dataRow}>
-                                <td className={styles.dataCell}>
-                                    {expense.categories?.[0]?.date || "No Date"}
-                                </td>
-                                {categories.map((category, catIndex) => {
-                                    const categoryData = expense.categories?.find(
-                                        (cat) => cat.category === category
-                                    );
-                                    return (
-                                        <td key={catIndex} className={styles.dataCell}>
-                                            {categoryData?.amount || ""}
-                                        </td>
-                                    );
-                                })}
-                                <td className={`${styles.dataCell} ${styles.bold}`}>
-                                    {expense.dailyTotal || 0}
-                                </td>
-                                <td
-                                    className={`${styles.dataCell} ${styles.update}`}
-                                    onClick={() => openUpdatePrompt(expense)}
-                                >
-                                    Update
-                                </td>
-                                <td className={`${styles.dataCell} ${styles.delete}`}>
-                                    Delete
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr className={styles.dataRow}>
-                            <td className={styles.dataCell} colSpan={categories.length + 3}>
-                                No Data Available
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
         </div>
     );
 }

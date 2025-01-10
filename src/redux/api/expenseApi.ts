@@ -21,6 +21,21 @@ export const flatApi = baseApi.injectEndpoints({
       invalidatesTags: [tagTypes.expense],
     }),
 
+    createMonthlyExpenseLimit:build.mutation({
+      query: (data) => {
+        return {
+          url: "/expense/limit-create",
+          method: "POST",
+         headers: {
+          Authorization: accessToken || "",
+      },
+          contentType: "application/json",
+          body:{spendingLimits:data.spendingLimits},
+        };
+      },
+      invalidatesTags: [tagTypes.expense],
+    }),
+
     getAllExpense: build.query({
       query: (query) => {
         return {
@@ -37,13 +52,14 @@ export const flatApi = baseApi.injectEndpoints({
   
     updateExpense: build.mutation({
        query: (data) => {
+        console.log(data.categories,'in redux')
         return {
           url: `/expense/tasks/${data.expenseId}`,
-          method: "PATCH",
+          method: "PUT",
           headers: {
             Authorization: accessToken || "",
         },
-          data: data.expenseData,
+          body: data.categories,
           contentType: "application/json",
         };
       },
@@ -61,11 +77,14 @@ export const flatApi = baseApi.injectEndpoints({
       },
       invalidatesTags: [tagTypes.expense],
     }),
+
+
   }),
 });
 
 export const {
   useCreateExpenseMutation,
+  useCreateMonthlyExpenseLimitMutation,
   useGetAllExpenseQuery,
   useUpdateExpenseMutation,
   useDeleteFlatByAdminMutation,

@@ -4,12 +4,13 @@ import React, { useEffect, useState } from 'react';
 import styles from './Home.module.css';  // Import the CSS module
 import { getFromLocalStorage } from '../utils/local-storage';
 import { useRouter } from 'next/navigation';
-import { useCreateExpenseMutation } from '../redux/api/expenseApi';
+import { useCreateExpenseMutation, useCreateMonthlyExpenseLimitMutation } from '../redux/api/expenseApi';
 import { toast } from 'sonner';
 import ExpenseTable from './expensesTable/ExpenseTable';
 
 function Home() {
   const router=useRouter()
+  const [createMonthlyExpense,{isLoading}]=useCreateMonthlyExpenseLimitMutation()
   const [createExpense]=useCreateExpenseMutation()
   const accessToken = getFromLocalStorage("accessToken");
   useEffect(() => {
@@ -18,8 +19,8 @@ function Home() {
     }
   }, [router,accessToken]);
 
-  const isFirstVisit = localStorage.getItem('firstVisit') === null;
   useEffect(() => {
+    const isFirstVisit = getFromLocalStorage('firstVisit') === null;
     if (isFirstVisit) {
       const overlay = document.getElementById('overlay');
       if (overlay) {
@@ -31,7 +32,7 @@ function Home() {
       }
       localStorage.setItem('firstVisit', 'false');
     }
-  }, [isFirstVisit]);
+  }, []);
 
   const closePrompt = () => {
     const overlay = document.getElementById('overlay');
@@ -46,17 +47,18 @@ function Home() {
 
 
 
-  const [expense, setExpense] = useState({ category: '', purpose: '', amount: '' });
+  const [expense, setExpense] = useState<{ [key: string]: number|string }>({});
+  const [expensesCalculation, setExpenseCalculation] = useState<{ [key: string]: number }>({});
   const categories = ['Groceries', 'Transportation', 'Healthcare', 'Utility', 'Charity', 'Miscellaneous'];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
-    const { name, value } = e.target;
-    setExpense({ ...expense, [name]: value });
-  };
+      const { name, value } = e.target;
+      setExpense({ ...expense, [name]: value });
+      setExpenseCalculation({ ...expensesCalculation, [name]: parseFloat(value) || 0 });
+    };
 
   const handleSubmit =async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    setExpense({ category: '', purpose: '', amount: '' });
   
 try {
   const data={...expense,amount:Number(expense.amount)}
@@ -71,72 +73,110 @@ try {
 }
 
   };
+  const handleSetExpenseLimit = async (e: React.FormEvent<HTMLFormElement>): Promise<void>=> {
+    e.preventDefault();
 
-  
+    // Combine all form data
+    const formData = {
+      spendingLimits: Object.entries(expense).map(([category, amount]) => ({
+        category,
+        amount,
+      })),
+    };
+
+try {
+  const res= await createMonthlyExpense(formData).unwrap()
+  if(res?.success){
+    toast.success("Monthly Expenses goal created Successfully")
+  }
+} catch (error) {
+    const errorMessage = (error as { data?: { message?: string } }).data?.message;
+              toast.error(errorMessage ? errorMessage : "something went wrong");
+}
+
+
+  }
 
   return (
     <div>
-   <div className={`${styles.container} ${styles.mb10}`}>
+   <div className={`${styles.container} ${styles.mb10}`} style={{fontFamily:"sans-serif"}}>
       <div id="overlay" className={styles.overlay} onClick={closePrompt}></div>
-      <h2 style={{
-        fontFamily:"sans-serif",
-        display:"flex",
-        justifyContent:"center"
-      }}>Set Your Monthly Expense Limit</h2>
+      <h2
+        style={{
+          fontFamily: 'sans-serif',
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        Set Your Monthly Expense Limit
+      </h2>
       <div id="promptContainer" className={styles.promptContainer}>
-
         <div className={styles.prompt}>
           <h2>Welcome to the Expense Tracker!</h2>
           <p>Please add your first expense or set a monthly expense goal.</p>
-          <form style={{padding:"10px"}}>
+          <form  style={{ padding: '10px' }} onSubmit={handleSetExpenseLimit}>
             <label>
-              Monthly Expense Goal:
-              <input
-              type="number"
-              name="monthlyGoal"
-              placeholder={Object.values(expense).reduce((acc, curr) => acc + (parseFloat(curr) || 0), 0).toString()}
-              
-              />
+              Monthly Expense Goal:{Object.values(expense).reduce<number>(
+                  (acc, curr) => acc + (Number(curr) || 0),
+                  0
+                ).toString()}
+             
             </label>
             <br />
 
-    {categories.map((category) => (
-      <div key={category} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px',marginTop:"10px" }}>
-      <label style={{ flex: 1 }}>
-        {category}:
-      </label>
-      <input
-        type="number"
-        style={{ flex: 2, marginLeft: '10px', padding: '5px' }}
-        name={`category-${category}`}
-        onChange={(e) => {
-        const value = parseFloat(e.target.value) || 0;
-        setExpense((prev) => ({ ...prev, [category]: value }));
-        }}
-      />
-      </div>
-    ))}
+            {categories.map((category) => (
+              <div
+                key={category}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '10px',
+                  marginTop: '10px',
+                }}
+              >
+                <label style={{ flex: 1 }}>{category}:</label>
+                <input
+                  type="number"
+                  style={{ flex: 2, marginLeft: '10px', padding: '5px' }}
+                  name={`category-${category}`}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    setExpense((prev) => ({ ...prev, [category]: value }));
+                  }}
+                />
+              </div>
+            ))}
 
-
-
-            <button type="submit" style={{marginRight:"5px"}}>Set Goal</button>
-          <button type="button" className={styles.closeButton} onClick={closePrompt} style={{marginBottom:"20px"}}>Close</button>
+            <button type="submit" style={{ marginRight: '5px' }}>
+             {isLoading ? "Loading..." :"Set Goal"}
+            </button>
+            <button
+              type="button"
+              className={styles.closeButton}
+              onClick={closePrompt}
+              style={{ marginBottom: '20px' }}
+            >
+              Close
+            </button>
           </form>
-
         </div>
       </div>
-      <button className={styles.showPrompt} onClick={() => {
-        const overlay = document.getElementById('overlay');
-        if (overlay) {
-          overlay.style.display = 'block';
-        }
-        const promptContainer = document.getElementById('promptContainer');
-        if (promptContainer) {
-          promptContainer.style.display = 'block';
-        }
-      }}>Set Your Limit</button>
+      <button
+        className={styles.showPrompt}
+        onClick={() => {
+          const overlay = document.getElementById('overlay');
+          if (overlay) {
+            overlay.style.display = 'block';
+          }
+          const promptContainer = document.getElementById('promptContainer');
+          if (promptContainer) {
+            promptContainer.style.display = 'block';
+          }
+        }}
+      >
+        Set Your Limit
+      </button>
     </div>
-
 
       
       <div className={styles.container}>
@@ -149,7 +189,7 @@ try {
         <form className={styles.form} onSubmit={handleSubmit}>
           <label>
             Category:
-            <select name="category" value={expense.category} onChange={handleChange} style={{ padding: "3px" }} required>
+            <select name="category"  onChange={handleChange} style={{ padding: "3px" }} required>
               <option value="">Select a category</option>
               {categories.map((category) => (
                 <option key={category} value={category}>
