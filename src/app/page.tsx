@@ -13,6 +13,7 @@ function Home() {
   const [createMonthlyExpense,{isLoading}]=useCreateMonthlyExpenseLimitMutation()
   const [createExpense]=useCreateExpenseMutation()
   const accessToken = getFromLocalStorage("accessToken");
+
   useEffect(() => {
     if (!accessToken) {
       router.push("/login");
@@ -52,6 +53,7 @@ function Home() {
   const categories = ['Groceries', 'Transportation', 'Healthcare', 'Utility', 'Charity', 'Miscellaneous'];
   const [error,setError]=useState<string>("")
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+    setError("")
       const { name, value } = e.target;
       setExpense({ ...expense, [name]: value });
       setExpenseCalculation({ ...expensesCalculation, [name]: parseFloat(value) || 0 });
@@ -59,16 +61,14 @@ function Home() {
 
   const handleSubmit =async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-  
+  setError("")
 try {
   const data={...expense,amount:Number(expense.amount)}
     const res=await  createExpense(data).unwrap()
-    console.log(res)
     if(res?.success){
       toast.success("created expenses successfully")
     }
 } catch (error) {
-    console.log(error)
     const errorMessage = (error as { data?: { message?: string } }).data?.message;
     toast.error(errorMessage ? errorMessage : "something went wrong");
     setError(errorMessage ? errorMessage : "something went wrong");
@@ -77,7 +77,7 @@ try {
   };
   const handleSetExpenseLimit = async (e: React.FormEvent<HTMLFormElement>): Promise<void>=> {
     e.preventDefault();
-
+    setError("")
     // Combine all form data
     const formData = {
       spendingLimits: Object.entries(expense).map(([category, amount]) => ({
@@ -92,9 +92,9 @@ try {
     toast.success("Monthly Expenses goal created Successfully")
   }
 } catch (error) {
-    const errorMessage = (error as { data?: { message?: string } }).data?.message;
-              toast.error(errorMessage ? errorMessage : "something went wrong");
-           setError(errorMessage ? errorMessage : "something went wrong")
+  const errorMessage = (error as { data?: { message?: string } }).data?.message;
+  setError(errorMessage ? errorMessage : "something went wrong")
+  toast.error(errorMessage ? errorMessage : "something went wrong");
 
 }
 

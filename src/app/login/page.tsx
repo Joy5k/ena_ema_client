@@ -10,10 +10,10 @@ import { setToLocalStorage } from '@/src/utils/local-storage';
 
 function LoginPage() {
     const router = useRouter();
-    const [login, { isLoading, error }] = useLoginMutation();
+    const [login, { isLoading }] = useLoginMutation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
+    const [error,setError]=useState<string>("")
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -29,6 +29,8 @@ function LoginPage() {
             }
         } catch (error) {
             console.error('Login failed:', error);
+            const errorMessage = (error as { data?: { message?: string } }).data?.message;
+            setError(errorMessage ? errorMessage : "something went wrong")
             toast.error('Login failed! Please check your credentials.');
         }
     };
@@ -65,7 +67,7 @@ function LoginPage() {
                     {isLoading ? 'Logging in...' : 'Login'}
                 </button>
 
-                {error && <p className={styles.errorMessage}>{error?.data?.message || 'Login failed'}</p>}
+                {error && <p className={styles.errorMessage}>{error || 'Login failed'}</p>}
 
                 <Link href="/register" className={styles.link}>
                     Don&apos;t have an account? Register
