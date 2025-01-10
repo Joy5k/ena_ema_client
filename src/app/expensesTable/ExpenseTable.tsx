@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import styles from "./ExpenseTable.module.css";
-import { useGetAllExpenseQuery, useUpdateExpenseMutation } from "@/src/redux/api/expenseApi";
+import { useDeleteExpensesMutation, useGetAllExpenseQuery, useUpdateExpenseMutation } from "@/src/redux/api/expenseApi";
 import { toast } from "sonner";
 
 interface Category {
@@ -21,8 +21,11 @@ interface ExpenseData {
 export default function ExpenseTable() {
     const { data } = useGetAllExpenseQuery({});
     const [updateExpense,{isLoading}]=useUpdateExpenseMutation()
+    const [deleteExpenses,{isLoading:deletingExpenses}]=useDeleteExpensesMutation()
     const expenses = data?.data || [];
 
+
+    
     const categories = [
         "Groceries",
         "Transportation",
@@ -46,7 +49,8 @@ export default function ExpenseTable() {
         setUpdatedCategories(categories);
         setShowUpdatePrompt(true);
     };
-
+  
+    
     const closeUpdatePrompt = () => {
         setShowUpdatePrompt(false);
     };
@@ -91,7 +95,10 @@ export default function ExpenseTable() {
 
     // delete expenses recorded according to date and user email
     const handleDeleteExpenses=async(date:string)=>{
-        toast.success(date)
+        const res =await deleteExpenses(date).unwrap()
+        if(res.success){
+            toast.success("Successfully deleted the expenses")
+        }
     }
 
 
@@ -119,7 +126,8 @@ export default function ExpenseTable() {
         Object.entries(
             expenses
                 .flatMap((expense:ExpenseData) => expense.categories) // Combine all categories into a single array
-                .reduce((acc: Record<string, any>, category) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .reduce((acc: Record<string, any>, category:{date:string,amount:number,category:string}) => {
                     const { date, category: catName, amount } = category;
                     if (!acc[date]) {
                         acc[date] = { date, data: {}, total: 0 };
@@ -133,6 +141,7 @@ export default function ExpenseTable() {
                 ([dateA], [dateB]) =>
                     new Date(dateA).getTime() - new Date(dateB).getTime()
             ) // Sort by date
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map(([date, { data, total }]: [string, any], index: number) => (
                 <tr key={index} className={styles.dataRow}>
                     {/** Display the date */}
@@ -156,12 +165,12 @@ export default function ExpenseTable() {
                         className={`${styles.dataCell} ${styles.update}`}
                         onClick={() => openUpdatePrompt({ date, data, total })}
                     >
-                        Update
+                        {isLoading ? "Loading...":"Update"}
                     </td>
                     <td className={`${styles.dataCell} ${styles.delete}`}
                     onClick={()=>handleDeleteExpenses(date)}
                     >
-                        Delete
+                        {deletingExpenses ? "Loading...":"Delete"}
                     </td>
                 </tr>
             ))

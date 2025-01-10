@@ -65,7 +65,7 @@ export const flatApi = baseApi.injectEndpoints({
       },
       invalidatesTags: [tagTypes.expense],
     }),
-    deleteFlatByAdmin: build.mutation({
+    deleteExpenses: build.mutation({
        query: (expenseId) => {
         return {
           url: `/expense/tasks/${expenseId}`,
@@ -87,6 +87,6 @@ export const {
   useCreateMonthlyExpenseLimitMutation,
   useGetAllExpenseQuery,
   useUpdateExpenseMutation,
-  useDeleteFlatByAdminMutation,
+  useDeleteExpensesMutation,
   
 } = flatApi;
