@@ -14,6 +14,13 @@ function Home() {
   const [createExpense]=useCreateExpenseMutation()
   const accessToken = getFromLocalStorage("accessToken");
 
+
+  const [expense, setExpense] = useState<{ [key: string]: number|string }>({});
+  const [expensesCalculation, setExpenseCalculation] = useState<{ [key: string]: number }>({});
+  const categories = ['Groceries', 'Transportation', 'Healthcare', 'Utility', 'Charity', 'Miscellaneous'];
+  const [error,setError]=useState<string>("")
+
+
   useEffect(() => {
     if (!accessToken) {
       router.push("/login");
@@ -48,10 +55,7 @@ function Home() {
 
 
 
-  const [expense, setExpense] = useState<{ [key: string]: number|string }>({});
-  const [expensesCalculation, setExpenseCalculation] = useState<{ [key: string]: number }>({});
-  const categories = ['Groceries', 'Transportation', 'Healthcare', 'Utility', 'Charity', 'Miscellaneous'];
-  const [error,setError]=useState<string>("")
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     setError("")
       const { name, value } = e.target;
@@ -67,6 +71,7 @@ try {
     const res=await  createExpense(data).unwrap()
     if(res?.success){
       toast.success("created expenses successfully")
+      
     }
 } catch (error) {
     const errorMessage = (error as { data?: { message?: string } }).data?.message;
@@ -89,6 +94,7 @@ try {
 try {
   const res= await createMonthlyExpense(formData).unwrap()
   if(res?.success){
+    closePrompt()
     toast.success("Monthly Expenses goal created Successfully")
   }
 } catch (error) {
