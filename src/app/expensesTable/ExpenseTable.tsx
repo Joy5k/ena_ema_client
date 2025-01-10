@@ -162,13 +162,16 @@ export default function ExpenseTable() {
                         {total || 0}
                     </td>
                     <td
-                        className={`${styles.dataCell} ${styles.update}`}
-                        onClick={() => openUpdatePrompt({ date, data, total })}
-                    >
-                        {isLoading ? "Loading...":"Update"}
-                    </td>
-                    <td className={`${styles.dataCell} ${styles.delete}`}
+                            className={`${styles.dataCell} ${styles.update} ${styles.tooltipTarget}`}
+                            onClick={() => openUpdatePrompt({ date, data, total })}
+                            title="Click to update expense" >
+                            {isLoading ? "Loading..." : "Update"}
+                        </td>
+
+                    <td  className={`${styles.dataCell} ${styles.delete} ${styles.tooltipTarget}`}
+    
                     onClick={()=>handleDeleteExpenses(date)}
+                    title=" Permanently delete the date "
                     >
                         {deletingExpenses ? "Loading...":"Delete"}
                     </td>

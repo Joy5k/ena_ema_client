@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import styles from './Home.module.css';  // Import the CSS module
+import styles from './Home.module.css'; 
 import { getFromLocalStorage } from '../utils/local-storage';
 import { useRouter } from 'next/navigation';
 import { useCreateExpenseMutation, useCreateMonthlyExpenseLimitMutation } from '../redux/api/expenseApi';
@@ -50,7 +50,7 @@ function Home() {
   const [expense, setExpense] = useState<{ [key: string]: number|string }>({});
   const [expensesCalculation, setExpenseCalculation] = useState<{ [key: string]: number }>({});
   const categories = ['Groceries', 'Transportation', 'Healthcare', 'Utility', 'Charity', 'Miscellaneous'];
-
+  const [error,setError]=useState<string>("")
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
       const { name, value } = e.target;
       setExpense({ ...expense, [name]: value });
@@ -69,7 +69,9 @@ try {
     }
 } catch (error) {
     console.log(error)
-    toast.error("something went wrong !")
+    const errorMessage = (error as { data?: { message?: string } }).data?.message;
+    toast.error(errorMessage ? errorMessage : "something went wrong");
+    setError(errorMessage ? errorMessage : "something went wrong");
 }
 
   };
@@ -92,6 +94,8 @@ try {
 } catch (error) {
     const errorMessage = (error as { data?: { message?: string } }).data?.message;
               toast.error(errorMessage ? errorMessage : "something went wrong");
+           setError(errorMessage ? errorMessage : "something went wrong")
+
 }
 
 
@@ -146,7 +150,7 @@ try {
                 />
               </div>
             ))}
-
+           <p style={{color:"red"}}>{error}</p>
             <button type="submit" style={{ marginRight: '5px' }}>
              {isLoading ? "Loading..." :"Set Goal"}
             </button>
@@ -208,6 +212,9 @@ try {
             Amount:
             <input type="number" name="amount" value={expense.amount} onChange={handleChange} required />
           </label>
+          
+          <p style={{color:"red"}}>{error}</p>
+
           <br />
           <button type="submit">Add Expense</button>
         </form>
